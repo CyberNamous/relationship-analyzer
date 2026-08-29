@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Relationship Decision-Making Analyzer</title>
+
+<style>
+  /* ============================================================
+     0. ROOT VARIABLES — the entire palette lives here so the
+     theme can be tuned from one place.
+  ============================================================ */
+  :root{
+    --bg-base:        #0d0f12;
+    --bg-card:        rgba(22, 28, 36, 0.8);
+    --bg-card-solid:  #131820;
+    --border-soft:    rgba(255, 255, 255, 0.08);
+
+    --accent-green:   #00ff66;
+    --accent-crimson: #ff4d4d;
+    --accent-amber:   #ffb300;
+
+    --text-primary:   #eef2f5;
+    --text-secondary: #9aa5b1;
+    --text-faint:     #5c6672;
+
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 8px;
+
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ============================================================
+     1. RESET & BASE
+  ============================================================ */
+  *, *::before, *::after{
+    box-sizing: border-box;
+  }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* hard guarantee: no horizontal scroll */
+  }
+
+  body{
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  /* Respect reduced-motion preferences across the whole app */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ============================================================
+     2. AMBIENT BACKGROUND GLOW
+     A soft organic aura sitting behind the whole dashboard,
+     built from layered radial gradients + blur filter.
+  ============================================================ */
+  .ambient-aura{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ambient-aura::before,
+  .ambient-aura::after{
+    content: "";
+    position: absolute;
+    width: min(60vw, 640px);
+    height: min(60vw, 640px);
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.22;
+  }
+
+  .ambient-aura::before{
+    top: -10%;
+    left: -10%;
+    background: radial-gradient(circle, var(--accent-green), transparent 70%);
+  }
+
+  .ambient-aura::after{
+    bottom: -15%;
+    right: -10%;
+    background: radial-gradient(circle, var(--accent-crimson), transparent 70%);
+    opacity: 0.16;
+  }
+
+  /* ============================================================
+     3. LAYOUT WRAPPER
+  ============================================================ */
+  .page-wrap{
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  /* ============================================================
+     4. HEADER
+  ============================================================ */
+  .app-header{
+    text-align: center;
+    padding-top: clamp(0.5rem, 2vw, 1.5rem);
+  }
+
+  .app-header .eyebrow{
+    display: inline-block;
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-green);
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+  }
+
+  .app-header h1{
+    font-size: clamp(1.5rem, 5vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem 0;
+    background: linear-gradient(180deg, #ffffff 0%, #b9c2cc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .app-header p{
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: clamp(0.85rem, 2vw, 1rem);
+  }
+
+  /* ============================================================
+     5. GLASSMORPHIC CARD (shared base)
+  ============================================================ */
+  .glass-card{
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3.5vw, 2rem);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 20px 40px -20px rgba(0,0,0,0.6);
+  }
+
+  /* ============================================================
+     6. SCENARIO CARD
+  ============================================================ */
+  .scenario-card{
+    position: relative;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.9rem;
+  }
+
+  .scenario-label{
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-amber);
+    font-weight: 600;
+  }
+
+  .scenario-text{
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    color: var(--text-primary);
+    font-weight: 500;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  }
+
+  .scenario-text.is-visible{
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scenario-meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .tag{
+    font-size: clamp(0.65rem, 1.4vw, 0.72rem);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.03);
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     7. INPUT SECTION
+  ============================================================ */
+  .input-card{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .input-card label{
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  textarea#userResponse{
+    width: 100%;
+    min-height: 140px;
+    resize: vertical;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+    padding: 1rem;
+    line-height: 1.6;
+    outline: none;
+    transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  }
+
+  textarea#userResponse::placeholder{
+    color: var(--text-faint);
+  }
+
+  textarea#userResponse:focus{
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 4px rgba(0, 255, 102, 0.12), 0 0 24px rgba(0, 255, 102, 0.08);
+  }
+
+  /* ============================================================
+     8. BUTTON GROUP
+  ============================================================ */
+  .button-group{
+    display: flex;
+    flex-direction: row;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .btn{
+    flex: 1 1 auto;
+    min-width: 160px;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.95rem 1.4rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), filter 0.15s var(--ease);
+    font-family: inherit;
+  }
+
+  .btn:active{
+    transform: scale(0.97);
+  }
+
+  .btn-primary{
+    background: linear-gradient(180deg, #00ff66 0%, #00cc52 100%);
+    color: #04140a;
+    box-shadow: 0 8px 24px -8px rgba(0, 255, 102, 0.55);
+  }
+
+  .btn-primary:hover{
+    filter: brightness(1.08);
+    box-shadow: 0 10px 30px -8px rgba(0, 255, 102, 0.7);
+  }
+
+  .btn-secondary{
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+  }
+
+  .btn-secondary:hover{
+    background: rgba(255,255,255,0.09);
+  }
+
+  /* Stack full-width on small screens for one-handed thumb use */
+  @media (max-width: 520px){
+    .button-group{
+      flex-direction: column;
+    }
+    .btn{
+      width: 100%;
+    }
+  }
+
+  /* ============================================================
+     9. RESULTS BLOCK
+  ============================================================ */
+  .results-block{
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.6s var(--ease), opacity 0.5s var(--ease), margin-top 0.6s var(--ease);
+  }
+
+  .results-block.is-open{
+    max-height: 600px;
+    opacity: 1;
+  }
+
+  .result-panel{
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3.5vw, 1.75rem);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-soft);
+    border-left-width: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .result-panel .result-title{
+    font-size: clamp(0.7rem, 1.6vw, 0.8rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .result-panel .result-body{
+    font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+    color: var(--text-primary);
+    line-height: 1.65;
+  }
+
+  .result-panel .result-score{
+    font-size: clamp(0.72rem, 1.6vw, 0.8rem);
+    color: var(--text-secondary);
+  }
+
+  .result-panel.tone-positive{
+    border-left-color: var(--accent-green);
+  }
+  .result-panel.tone-positive .result-title{
+    color: var(--accent-green);
+  }
+
+  .result-panel.tone-negative{
+    border-left-color: var(--accent-crimson);
+  }
+  .result-panel.tone-negative .result-title{
+    color: var(--accent-crimson);
+  }
+
+  .result-panel.tone-neutral{
+    border-left-color: var(--accent-amber);
+  }
+  .result-panel.tone-neutral .result-title{
+    color: var(--accent-amber);
+  }
+
+  /* ============================================================
+     10. STATUS / ERROR NOTICE (dataset load feedback)
+  ============================================================ */
+  .status-note{
+    font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+    color: var(--text-faint);
+    text-align: center;
+    padding: 0.5rem 0;
+  }
+
+  .status-note.is-error{
+    color: var(--accent-amber);
+  }
+
+  /* ============================================================
+     11. FOOTER
+  ============================================================ */
+  .app-footer{
+    text-align: center;
+    color: var(--text-faint);
+    font-size: clamp(0.7rem, 1.6vw, 0.78rem);
+    padding-top: 0.5rem;
+  }
+
+  /* Keyboard focus visibility across interactive elements */
+  button:focus-visible,
+  textarea:focus-visible{
+    outline: 2px solid var(--accent-green);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ambient background aura, purely decorative -->
+  <div class="ambient-aura" aria-hidden="true"></div>
+
+  <div class="page-wrap">
+
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+    <header class="app-header">
+      <span class="eyebrow">Clarity Engine</span>
+      <h1>Relationship Decision-Making Analyzer</h1>
+      <p>Generate a dilemma. Write your move. See where it lands.</p>
+    </header>
+
+    <!-- ============================================================
+         SCENARIO CARD
+    ============================================================ -->
+    <section class="glass-card scenario-card" id="scenarioCard">
+      <span class="scenario-label">Current Scenario</span>
+      <p class="scenario-text" id="scenarioText">Loading your dataset&hellip;</p>
+      <div class="scenario-meta" id="scenarioMeta"></div>
+    </section>
+
+    <div class="status-note" id="statusNote"></div>
+
+    <!-- ============================================================
+         INPUT SECTION
+    ============================================================ -->
+    <section class="glass-card input-card">
+      <label for="userResponse">Your Strategy</label>
+      <textarea
+        id="userResponse"
+        placeholder="Describe exactly what you plan to say or do in response to this scenario&hellip;"
+        aria-label="Your relationship strategy"
+      ></textarea>
+
+      <div class="button-group">
+        <button class="btn btn-secondary" id="newScenarioBtn" type="button">New Scenario</button>
+        <button class="btn btn-primary" id="submitBtn" type="button">Submit Action</button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         RESULTS BLOCK (hidden until first submission)
+    ============================================================ -->
+    <section class="results-block" id="resultsBlock" aria-live="polite">
+      <div class="result-panel" id="resultPanel">
+        <span class="result-title" id="resultTitle"></span>
+        <p class="result-body" id="resultBody"></p>
+        <span class="result-score" id="resultScore"></span>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      Runs entirely offline in your browser. Nothing you type is sent anywhere.
+    </footer>
+
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     0. CONFIGURATION
+     Swap in your own filename below. The file must be plain text
+     and reachable via a relative fetch() from this HTML file
+     (i.e. served over http/https, not opened as file:// — most
+     browsers block fetch() on the file:// protocol).
+  ============================================================ */
+  const DATASET_FILE = "your_file_name.txt";
+
+  /* Header markers the parser looks for inside the dataset file.
+     Everything between one marker and the next belongs to that
+     section. Order in the file does not matter as long as each
+     marker appears on its own line. */
+  const SECTION_MARKERS = {
+    perspectives:  "1. PERSPECTIVES",
+    communication: "2. COMMUNICATION ACTIONS",
+    boundary:      "3. BOUNDARY ACTIONS",
+    contexts:      "4. CONTEXTS",
+    templates:     "5. QUESTION TEMPLATES"
+  };
+
+  /* ============================================================
+     1. FALLBACK DATA
+     Used only if the dataset file can't be fetched/parsed, so the
+     app is still demoable offline before you wire up your file.
+  ============================================================ */
+  const FALLBACK = {
+    perspectives: [
+      "the version of you that just wants peace",
+      "the version of you that still wants answers",
+      "a close friend watching from the outside",
+      "your future self, six months from now"
+    ],
+    communication: [
+      "send one clear, factual message and then stop",
+      "ask a single direct question and wait for the real answer",
+      "say exactly what you need, once, without over-explaining",
+      "name the pattern out loud instead of reacting to it"
+    ],
+    boundary: [
+      "mute the conversation for 48 hours",
+      "stop initiating contact until they follow through",
+      "decline the invitation without justifying it",
+      "let the silence stand instead of filling it"
+    ],
+    contexts: [
+      "after a promise was broken for the third time",
+      "in the middle of a conversation that keeps circling",
+      "right after being left on read for two days",
+      "when the topic keeps getting redirected"
+    ],
+    templates: [
+      "Given {context}, from {perspective}, would you {action}?",
+      "If you were {perspective} facing {context}, is it wiser to {action}?",
+      "{context} — from {perspective}, does it make sense to {action}?",
+      "Standing in {context}, would {perspective} choose to {action}?"
+    ]
+  };
+
+  /* ============================================================
+     2. KEYWORD DICTIONARIES
+  ============================================================ */
+  const POSITIVE_KEYWORDS = [
+    "boundary", "boundaries", "space", "calm", "reflect", "distance",
+    "sanity", "peace", "growth", "accountable", "let go", "detach",
+    "respect", "communicate", "understand"
+  ];
+
+  const NEGATIVE_KEYWORDS = [
+    "argue", "scream", "revenge", "blame", "force", "beg", "chase",
+    "explode", "over-explain", "insult", "curse", "fight", "attack", "yell"
+  ];
+
+  /* ============================================================
+     3. STATE
+  ============================================================ */
+  let pools = null; // { perspectives, communication, boundary, contexts, templates }
+
+  /* ============================================================
+     4. DOM REFERENCES
+  ============================================================ */
+  const scenarioText  = document.getElementById("scenarioText");
+  const scenarioMeta  = document.getElementById("scenarioMeta");
+  const statusNote    = document.getElementById("statusNote");
+  const userResponse  = document.getElementById("userResponse");
+  const submitBtn     = document.getElementById("submitBtn");
+  const newScenarioBtn= document.getElementById("newScenarioBtn");
+  const resultsBlock  = document.getElementById("resultsBlock");
+  const resultPanel   = document.getElementById("resultPanel");
+  const resultTitle   = document.getElementById("resultTitle");
+  const resultBody    = document.getElementById("resultBody");
+  const resultScore   = document.getElementById("resultScore");
+
+  /* ============================================================
+     5. DATASET LOADING + PARSING
+  ============================================================ */
+
+  /**
+   * Fetches DATASET_FILE as raw text and slices it into arrays
+   * keyed by the section markers defined above.
+   */
+  async function loadDataset(){
+    try{
+      const response = await fetch(DATASET_FILE);
+      if(!response.ok){
+        throw new Error("Dataset file responded with status " + response.status);
+      }
+      const rawText = await response.text();
+      const parsed = parseDataset(rawText);
+
+      // Guard: if any section came back empty, fall back for that
+      // section only, so a partially-filled file still works.
+      pools = {
+        perspectives:  parsed.perspectives.length  ? parsed.perspectives  : FALLBACK.perspectives,
+        communication: parsed.communication.length ? parsed.communication : FALLBACK.communication,
+        boundary:      parsed.boundary.length      ? parsed.boundary      : FALLBACK.boundary,
+        contexts:      parsed.contexts.length      ? parsed.contexts      : FALLBACK.contexts,
+        templates:     parsed.templates.length     ? parsed.templates     : FALLBACK.templates
+      };
+
+      setStatus("Dataset loaded from " + DATASET_FILE + ".", false);
+    }catch(err){
+      // Typical causes: file not found, wrong filename in
+      // DATASET_FILE, or the page was opened directly as file://
+      // (fetch() is blocked there by browser security policy).
+      pools = FALLBACK;
+      setStatus(
+        "Couldn't load \"" + DATASET_FILE + "\" — using built-in sample scenarios. " +
+        "Update DATASET_FILE at the top of the script and serve this page over " +
+        "http/https to use your own dataset.",
+        true
+      );
+    }
+  }
+
+  /**
+   * Splits raw dataset text into five arrays based on the header
+   * markers. Blank lines and the marker lines themselves are
+   * excluded from the resulting arrays.
+   */
+  function parseDataset(rawText){
+    const lines = rawText.split(/\r?\n/);
+
+    const buckets = {
+      perspectives: [],
+      communication: [],
+      boundary: [],
+      contexts: [],
+      templates: []
+    };
+
+    // Reverse-lookup: marker text -> bucket key
+    const markerToKey = {};
+    Object.keys(SECTION_MARKERS).forEach(function(key){
+      markerToKey[SECTION_MARKERS[key]] = key;
+    });
+
+    let currentKey = null;
+
+    lines.forEach(function(line){
+      const trimmed = line.trim();
+      if(trimmed.length === 0) return;
+
+      // Is this line one of our section headers?
+      const matchedKey = markerToKey[trimmed];
+      if(matchedKey){
+        currentKey = matchedKey;
+        return;
+      }
+
+      // Otherwise, if we're inside a known section, store the line.
+      // Strip a leading "- " or "1. " style list marker if present.
+      if(currentKey){
+        const cleaned = trimmed.replace(/^[-*]\s+/, "").replace(/^\d+[.)]\s+/, "");
+        buckets[currentKey].push(cleaned);
+      }
+    });
+
+    return buckets;
+  }
+
+  /**
+   * Writes a small helper note under the scenario card so it's
+   * obvious at a glance whether the real dataset or the fallback
+   * sample data is currently active.
+   */
+  function setStatus(message, isError){
+    statusNote.textContent = message;
+    statusNote.classList.toggle("is-error", !!isError);
+  }
+
+  /* ============================================================
+     6. SCENARIO GENERATION
+  ============================================================ */
+
+  function pickRandom(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  /**
+   * Combines the communication and boundary pools into one
+   * unified "action" pool, then picks one action, one
+   * perspective, one context, and one template, and blends them
+   * into a single dilemma sentence.
+   */
+  function generateScenario(){
+    if(!pools) return;
+
+    const actionPool = pools.communication.concat(pools.boundary);
+
+    const action      = pickRandom(actionPool);
+    const perspective = pickRandom(pools.perspectives);
+    const context      = pickRandom(pools.contexts);
+    const template     = pickRandom(pools.templates);
+
+    const blended = template
+      .replace(/\{action\}/g, action)
+      .replace(/\{perspective\}/g, perspective)
+      .replace(/\{context\}/g, context);
+
+    renderScenario(blended, { action: action, perspective: perspective, context: context });
+  }
+
+  function renderScenario(text, meta){
+    // Fade out, swap text, fade back in.
+    scenarioText.classList.remove("is-visible");
+
+    window.setTimeout(function(){
+      scenarioText.textContent = text;
+      scenarioMeta.innerHTML = "";
+
+      [
+        ["Perspective", meta.perspective],
+        ["Context", meta.context]
+      ].forEach(function(pair){
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = pair[0] + ": " + pair[1];
+        scenarioMeta.appendChild(tag);
+      });
+
+      // Force reflow so the transition re-triggers reliably.
+      void scenarioText.offsetWidth;
+      scenarioText.classList.add("is-visible");
+    }, 180);
+  }
+
+  /* ============================================================
+     7. KEYWORD SCANNING ENGINE
+  ============================================================ */
+
+  function countKeywordHits(text, keywordList){
+    const lowered = text.toLowerCase();
+    let hits = 0;
+    keywordList.forEach(function(keyword){
+      // Use a loose substring match so phrases like "let go" work
+      // alongside single words like "calm".
+      if(lowered.indexOf(keyword) !== -1){
+        hits += 1;
+      }
+    });
+    return hits;
+  }
+
+  function analyzeResponse(text){
+    const positiveHits = countKeywordHits(text, POSITIVE_KEYWORDS);
+    const negativeHits = countKeywordHits(text, NEGATIVE_KEYWORDS);
+
+    let tone, title, body;
+
+    if(positiveHits > negativeHits){
+      tone  = "positive";
+      title = "Analysis: High Emotional Clarity";
+      body  = "You prioritize self-regulation, structural boundaries, and objective facts over cyclic arguments.";
+    }else if(negativeHits > positiveHits){
+      tone  = "negative";
+      title = "Analysis: Reactive Trap";
+      body  = "Your decision leans toward escalation, over-explaining, or chasing where communication is already blocked.";
+    }else{
+      tone  = "neutral";
+      title = "Analysis: Neutral Buffer";
+      body  = "Your path holds some protective restraint, but requires clearer boundary definition to prevent gradual exhaustion.";
+    }
+
+    return {
+      tone: tone,
+      title: title,
+      body: body,
+      positiveHits: positiveHits,
+      negativeHits: negativeHits
+    };
+  }
+
+  function renderResult(result){
+    resultPanel.classList.remove("tone-positive", "tone-negative", "tone-neutral");
+    resultPanel.classList.add("tone-" + result.tone);
+
+    resultTitle.textContent = result.title;
+    resultBody.textContent  = result.body;
+    resultScore.textContent =
+      "Signals detected — clarity: " + result.positiveHits + " · reactive: " + result.negativeHits;
+
+    resultsBlock.classList.add("is-open");
+  }
+
+  /* ============================================================
+     8. EVENT WIRING
+  ============================================================ */
+
+  submitBtn.addEventListener("click", function(){
+    const text = userResponse.value.trim();
+
+    if(text.length === 0){
+      resultPanel.classList.remove("tone-positive", "tone-negative");
+      resultPanel.classList.add("tone-neutral");
+      resultTitle.textContent = "Analysis: Nothing To Read Yet";
+      resultBody.textContent  = "Write down what you'd actually say or do, then submit it for a read.";
+      resultScore.textContent = "";
+      resultsBlock.classList.add("is-open");
+      return;
+    }
+
+    const result = analyzeResponse(text);
+    renderResult(result);
+  });
+
+  newScenarioBtn.addEventListener("click", function(){
+    generateScenario();
+    userResponse.value = "";
+    resultsBlock.classList.remove("is-open");
+  });
+
+  /* ============================================================
+     9. INIT
+  ============================================================ */
+  (async function init(){
+    await loadDataset();
+    generateScenario();
+  })();
+
+})();
+</script>
+
+</body>
+</html>

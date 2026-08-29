@@ -1,0 +1,119 @@
+1. PERSPECTIVES
+[
+"Your partner of 6 months",
+"Your partner of 2 years",
+"Your spouse of 5 years",
+"Your spouse of 12 years",
+"Your long-distance partner",
+"Your partner of 3 months",
+"Your live-in partner",
+"Your fiancé of 1 year",
+"Your girlfriend of 8 months",
+"Your boyfriend of 4 years",
+"Your recently reconciled partner",
+"An ex you recently reconnected with",
+"Your partner after a major argument",
+"Your partner during a rough patch",
+"Your partner in a new relationship"
+]
+
+2. COMMUNICATION ACTIONS
+[
+"becomes emotionally distant and stays online without replying to you",
+"meets calm attempts at conversation with defensiveness and silence",
+"starts giving short replies whenever you bring up serious concerns",
+"changes the subject whenever you ask about something that hurt you",
+"reads your messages but waits hours before giving a real response",
+"keeps saying they are fine while clearly acting upset with you",
+"stops sharing small details about their day like they used to",
+"responds with sarcasm when you try to explain how you feel",
+"avoids discussing problems until they become too serious to ignore",
+"only talks about their own problems and rarely asks how you are",
+"leaves important questions unanswered while chatting normally with others",
+"starts using one-word replies whenever a difficult topic comes up",
+"tells you that you are overthinking instead of addressing your concern",
+"becomes unusually quiet after you disagree with them",
+"keeps postponing a needed conversation without suggesting another time",
+"uses jokes to avoid giving a direct answer about the relationship",
+"starts communicating less after spending more time with new friends",
+"acts warm in person but becomes cold and distant through messages",
+"shares their feelings with friends but shuts you out when you ask",
+"brings up unrelated mistakes whenever you explain a current issue",
+"stops checking in after previously making it part of your routine",
+"answers serious questions with vague statements that leave you confused",
+"gets defensive before you have even finished explaining your concern",
+"starts treating normal questions as if you are accusing them",
+"withdraws from conversations whenever they know they were at fault"
+]
+
+3. BOUNDARY ACTIONS
+[
+"expects you to change your plans for them without offering the same effort",
+"checks your private messages and acts like you should have nothing to hide",
+"makes plans involving you without asking whether you are available",
+"expects constant updates from you while rarely giving updates themselves",
+"uses your personal time whenever they need attention",
+"invites people into shared plans without discussing it with you first",
+"treats your need for space as a personal attack",
+"keeps crossing a boundary you have already explained several times",
+"expects forgiveness without taking responsibility for what they did",
+"uses past favors as a reason you should accept behavior you dislike",
+"blames you for their reaction instead of addressing what started the conflict",
+"acts entitled to your time even when you have clearly said you are busy",
+"shares private relationship details with friends after you asked them not to",
+"makes decisions that affect both of you and tells you only afterward",
+"expects you to respect their boundaries while ignoring yours",
+"keeps asking for another chance without showing any real change",
+"uses guilt to make you feel bad for saying no to a request",
+"expects access to your plans while keeping their own plans vague",
+"takes your support for granted but becomes unavailable when you need them",
+"breaks an agreement and argues that it was not a serious enough issue",
+"expects you to apologize first even when they caused the conflict",
+"turns your reasonable boundary into a debate about how much you love them",
+"keeps bringing someone into your shared space despite your clear discomfort",
+"avoids accountability by saying you would have done the same thing",
+"demands trust while refusing to explain behavior that reasonably concerns you"
+]
+
+4. CONTEXTS
+[
+"during a stressful week at work when they say they are completely burned out",
+"after several small arguments have started piling up without being resolved",
+"while you are both trying to recover from a recent disagreement",
+"right before an important event that you were both supposed to enjoy",
+"after you notice the same behavior happening for the third time",
+"while you are already dealing with pressure from family and work",
+"following a period when the relationship had finally started feeling stable",
+"when you have very little free time and need clearer communication",
+"after they promised that the same issue would not happen again",
+"while you are questioning whether the relationship still feels balanced",
+"at a point when you are unsure whether to speak up or let it go",
+"after weeks of feeling like you are carrying most of the emotional effort",
+"when both of you are tired and neither wants another long argument",
+"while you are trying to rebuild trust after an earlier problem",
+"after you have already explained why the behavior bothers you",
+"when their actions leave you unsure whether they need space or are pulling away",
+"during a period of long-distance communication where small issues feel bigger",
+"after you realize you have started avoiding certain topics to keep the peace",
+"when you are wondering if patience is helping or only delaying the problem",
+"leaving you to wonder if a temporary break is healthier than ongoing hurt"
+]
+
+5. QUESTION TEMPLATES
+[
+"What would you do if {perspective} {action} {context}?",
+"How would you handle it if {perspective} {action} {context}?",
+"Would you confront the issue if {perspective} {action} {context}?",
+"How would you respond when {perspective} {action} {context}?",
+"Would you give them space if {perspective} {action} {context}?",
+"How would you talk about it if {perspective} {action} {context}?",
+"Would you set a firm boundary if {perspective} {action} {context}?",
+"How would you feel if {perspective} {action} {context}?",
+"Would you stay patient if {perspective} {action} {context}?",
+"How would you approach the relationship if {perspective} {action} {context}?",
+"Would you ask for change if {perspective} {action} {context}?",
+"How would you protect your peace if {perspective} {action} {context}?",
+"Would you consider taking a step back if {perspective} {action} {context}?",
+"How would you decide what to do if {perspective} {action} {context}?",
+"Would you try to repair things if {perspective} {action} {context}?"
+]
